@@ -1,24 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   UnauthorizedException,
   ServiceUnavailableException,
   NotFoundException,
+  HttpException,
 } from '@nestjs/common/exceptions';
+import { RegisterUserDto } from './Dto/registerDto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
 
 
-  async validateUser(username: string, password: string): Promise<any> {
+  async validateUser(email: string, password: string): Promise<any> {
     const validateUser = await this.prismaService.user.findFirst({
       where: {
-        email: username,
+        email: email,
         password: password,
       },
     });
@@ -30,45 +32,49 @@ export class AuthService {
   }
 
 
-  async ragisterUser(data: any) {
-    const {  email, password, role,name } = data;
-    if (
-      Object.keys(email).length  == 0 &&  
-      Object.keys(password).length == 0 &&
-      Object.keys(role).length == 0
-    ) 
-    {
-      throw new ServiceUnavailableException(
-        'data not fullfilld to register user',
-      );
-    }
- 
-    if (role === 'STUDENT' || role === 'ADMIN' || role === 'LIBRARIAN') {
-      try {
-        const {  email, password, role,name } = data;
-        const findDuplicateUser = await this.prismaService.user.findUnique({
-          where: { email: email },
-        });
-        if (!findDuplicateUser) {
-          const register = await this.prismaService.user.create({
-            data: {name,email, password, role },
-          });
+  async ragisterUser(data: RegisterUserDto) {
+    try {
 
-          return register;
-        } else {
-          return 'username is alrady exits';
-        }
-      } catch (error) {
-        throw new ServiceUnavailableException(
-          'User not Register please check data',
-        );
+      // Validation role
+      switch (data.role) {
+        case 'ADMIN':
+        case 'STUDENT':
+        case 'LIBRARIAN':
+          break;
+        default: throw new HttpException('Invalid Role!', HttpStatus.BAD_REQUEST)
       }
-    } else {
-      throw new ServiceUnavailableException('make sure role');
+
+      const isExistUser = await this.prismaService.user.findUnique({
+        where:{
+          email:data.email
+        }
+      })
+
+      if((isExistUser)){
+        throw new HttpException('Email already exist!', HttpStatus.BAD_REQUEST)
+      }
+
+      const newUser = await this.prismaService.user.create({
+        data: {
+          email: data.email,
+          name: data.name,
+          password: data.password,
+          role: data.role
+        }
+      })
+
+      if (!(newUser)) {
+        throw new HttpException('Error to create new user!', HttpStatus.BAD_REQUEST)
+      }
+
+      return newUser;
+
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST)
     }
   }
 
-   
+
 
 
 }
