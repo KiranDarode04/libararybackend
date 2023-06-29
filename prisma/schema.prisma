@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  BookIR    BookIR[] @relation(name: "librarian")
+  BookIR2   BookIR[] @relation(name: "student")
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+  LIBRARIAN
+}
+
+model Student {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String
+  password String
+}
+
+model Book {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  bookCode   String @unique
+  name     String @unique        //find book,bookCode,qty,lang,author,BI-> bcode,totalQty,u_id,BookStore= bookCode,totalqty
+  quantity String
+  language String
+  author   String
+}
+
+//isue return
+model BookIR {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String   @db.ObjectId
+  bookId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user_id   String   @db.ObjectId
+  librarian User     @relation(name: "librarian", fields: [user_id], references: [id])
+  student   User     @relation(name: "student", fields: [studentId], references: [id])
+}
+
+//bookImport
+model BookI {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  bookCode      String
+  totalQuantity String
+  issueQuantity String
+  user_id       String @db.ObjectId
+}
+
+model BookStore {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  bookCode      String @unique
+  totalQuantity String
+  issueQuantity String
+}
