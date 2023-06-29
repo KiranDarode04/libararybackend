@@ -12,11 +12,12 @@ export class BookController {
   async getAllBook(@Request() req) {
       const bookrRecord= await this.bookService.getBook();
       const user = req.user;
-      console.info("user :"+user.role);
-    return bookrRecord;
+      console.info("user :"+user.name);
+    return user;
   }
 
   @Post('insertBook')
+  @UseGuards(JwtAuthGuard)
   async insertBook(@Body() data:any,@Request() req){
     const user = req.user;
        const insertedBook=await this.bookService.insertBookRecord(data,user);

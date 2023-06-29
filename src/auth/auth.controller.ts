@@ -11,13 +11,14 @@ export class AuthController {
   @Post('login')
   async login(@Request() req) {
     const { username, password } = req.body;
+  
     const user = await this.authService.validateUser(username, password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
     const token = await this.authService.generateToken(user);
     const {id,name,email,role}=user
-    return {name,role,token};
+    return {id,name,role,token};
   }
 
   @Post('registerUser')

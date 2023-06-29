@@ -13,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly prismaService: PrismaService,
   ) {}
-  // constructor() {}
+
 
   async validateUser(username: string, password: string): Promise<any> {
     const validateUser = await this.prismaService.user.findFirst({

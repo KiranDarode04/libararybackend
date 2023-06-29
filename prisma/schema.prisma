@@ -18,8 +18,18 @@ model User {
   role      Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  BookIR    BookIR[] @relation(name: "librarian")
-  BookIR2   BookIR[] @relation(name: "student")
+  librarian BookIR[] @relation(name: "librarian")
+  student   BookIR[] @relation(name: "student")
+  BookI     BookI[]  @relation(name: "User")
+
+  Profile Profile?
+}
+
+model Profile {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  image  String
+  userId String @unique @db.ObjectId
+  User   User   @relation(fields: [userId], references: [id])
 }
 
 enum Role {
@@ -36,12 +46,15 @@ model Student {
 }
 
 model Book {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode   String @unique
-  name     String @unique        //find book,bookCode,qty,lang,author,BI-> bcode,totalQty,u_id,BookStore= bookCode,totalqty
-  quantity String
-  language String
-  author   String
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  bookCode  String      @unique
+  name      String      @unique
+  quantity  Int
+  language  String
+  author    String
+  BookI     BookI[]     @relation(name: "bookCode")
+  BookStore BookStore[] @relation(name: "bookStore")
+  Book      BookIR[]    @relation(name: "bookIR")
 }
 
 //isue return
@@ -54,20 +67,24 @@ model BookIR {
   user_id   String   @db.ObjectId
   librarian User     @relation(name: "librarian", fields: [user_id], references: [id])
   student   User     @relation(name: "student", fields: [studentId], references: [id])
+  bookIR    Book     @relation(name: "bookIR", fields: [bookId], references: [id])
 }
 
 //bookImport
 model BookI {
   id            String @id @default(auto()) @map("_id") @db.ObjectId
   bookCode      String
-  totalQuantity String
-  issueQuantity String
+  Book          Book   @relation(name: "bookCode", fields: [bookCode], references: [bookCode])
+  totalQuantity Int
   user_id       String @db.ObjectId
+  User          User   @relation(name: "User", fields: [user_id], references: [id])
 }
 
 model BookStore {
   id            String @id @default(auto()) @map("_id") @db.ObjectId
   bookCode      String @unique
-  totalQuantity String
-  issueQuantity String
+  Book          Book   @relation(name: "bookStore", fields: [bookCode], references: [bookCode])
+  totalQuantity Int
+  issueQuantity Int
 }
+
