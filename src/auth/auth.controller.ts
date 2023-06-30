@@ -19,9 +19,7 @@ export class AuthController {
     }
     
     const payload = { id: user.id, email: user.email ,role:user.role};
-    return {
-      ...payload,
-      access_token: await this.jwtService.signAsync(payload),
+    return {...payload, access_token: await this.jwtService.signAsync(payload),
     };
   }
 

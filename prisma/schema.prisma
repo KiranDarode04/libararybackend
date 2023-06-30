@@ -85,6 +85,6 @@ model BookStore {
   bookCode      String @unique
   Book          Book   @relation(name: "bookStore", fields: [bookCode], references: [bookCode])
   totalQuantity Int
-  issueQuantity Int
+  issueQuantity Int @default(0)
 }
 

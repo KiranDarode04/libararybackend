@@ -11,11 +11,8 @@ export class BookService {
 
   async insertBookRecord(data: any, user) {
     try {
-    
-     console.info(user.role);
       if (user.role == 'ADMIN' || user.role == 'LIBRARIAN') {
         const u_id = user.id;
-        console.info(u_id);
         const { bookCode, name, quantity, author, language } = data;
         if (
           Object.keys(bookCode).length >= 0 &&
@@ -24,11 +21,16 @@ export class BookService {
           Object.keys(author).length >= 0 &&
           Object.keys(language).length >= 0
         ) {
-          console.info("ddwe");
           const findBookCode = await this.prismaService.book.findFirst({
-            where: { bookCode },
+            where: { bookCode }
           });
-          console.info(findBookCode);
+         if(!findBookCode){
+          const insertBook=await this.prismaService.book.create({data:{bookCode,author,language,name,quantity}});
+          const insertBookImportData=await this.prismaService.bookI.create({data:{totalQuantity:quantity,bookCode,user_id:u_id}});
+          const insertBookStoreData=await this.prismaService.bookStore.create({data:{bookCode,totalQuantity:quantity,issueQuantity:0}})
+          console.info("findBookCode");
+          return {Book:insertBook,BookI:insertBookImportData,BookStore:insertBookStoreData}
+         }
         
         }
         else {
