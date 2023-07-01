@@ -31,6 +31,14 @@ export class BookController {
     return insertedBook;
   }
 
+  @Put('importBook')
+  @UseGuards(AuthGuardService)
+  async importBook(@Body() data: any, @Request() req) {
+    const user = req.user;
+    return await this.bookService.importBook(data, user);
+    
+  }
+
   @Put('updateImportBookQty')
   @UseGuards(AuthGuardService)
   async updateBookQty(@Body() data: any, @Request() req) {

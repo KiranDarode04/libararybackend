@@ -12,5 +12,10 @@ export class AdminController {
     return await this.adminService.deleteUserData();
   }
 
+  @Delete('deleteAllData')
+  async deleteAllData(@Body() data:any) {
+    return await this.adminService.deleteAllData();
+  }
+
 
 }

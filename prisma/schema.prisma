@@ -38,6 +38,7 @@ enum Role {
   LIBRARIAN
 }
 
+
 model Student {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   name     String
@@ -49,7 +50,6 @@ model Book {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
   bookCode  String      @unique
   name      String      @unique
-  quantity  Int
   language  String
   author    String
   BookI     BookI[]     @relation(name: "bookCode")
@@ -65,19 +65,39 @@ model BookIR {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user_id   String   @db.ObjectId
+  type      Type?    // ISSUE RETURN
   librarian User     @relation(name: "librarian", fields: [user_id], references: [id])
   student   User     @relation(name: "student", fields: [studentId], references: [id])
   bookIR    Book     @relation(name: "bookIR", fields: [bookId], references: [id])
 }
 
+enum Type {
+  ISSUE
+  RETURN
+}
+
+
+model BookStatus {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  status Type
+  bookId    String?   @db.ObjectId
+  studentId String   @db.ObjectId  @unique
+}
+
+// ISSUE (Librarian User type for Issue)
+// RETURN (Librarian User type for Return)
+
+
 //bookImport
 model BookI {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode      String @unique
-  Book          Book   @relation(name: "bookCode", fields: [bookCode], references: [bookCode])
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookCode      String
+  Book          Book     @relation(name: "bookCode", fields: [bookCode], references: [bookCode])
   totalQuantity Int
-  user_id       String @db.ObjectId
-  User          User   @relation(name: "User", fields: [user_id], references: [id])
+  user_id       String   @db.ObjectId
+  User          User     @relation(name: "User", fields: [user_id], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model BookStore {
@@ -85,6 +105,6 @@ model BookStore {
   bookCode      String @unique
   Book          Book   @relation(name: "bookStore", fields: [bookCode], references: [bookCode])
   totalQuantity Int
-  issueQuantity Int @default(0)
-}// 12weef,12,12,2 bookcode> id,bcode,totalQty, isuseQty > update 
-
+  issueQuantity Int    @default(0)
+}
+// 12weef,12,12,2 bookcode> id,bcode,totalQty, isuseQty > update 

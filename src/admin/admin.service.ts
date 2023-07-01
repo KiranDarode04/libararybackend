@@ -49,4 +49,15 @@ export class AdminService {
       throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
     }
   }
+
+  async deleteAllData(){
+
+    await this.prismaService.bookI.deleteMany({});
+    await this.prismaService.bookIR.deleteMany({})
+    await this.prismaService.bookStore.deleteMany({})
+    await this.prismaService.book.deleteMany({})
+
+    return 'deleted all'
+
+  }
 }

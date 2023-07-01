@@ -27,7 +27,7 @@ export class BookService {
           });
           if (!findBookCode) {
             const insertBook = await this.prismaService.book.create({
-              data: { bookCode, author, language, name, quantity },
+              data: { bookCode, author, language, name,  },
             });
             const insertBookImportData = await this.prismaService.bookI.create({
               data: { totalQuantity: quantity, bookCode, user_id: u_id },
@@ -55,7 +55,9 @@ export class BookService {
         }
       }
     } catch (error) {
-      return error;
+      console.log(error);
+      
+      return error.toString();
     }
   }
 
@@ -71,17 +73,21 @@ export class BookService {
   }
 
   async updateBookQty(data: any, user: any) {
+    console.log(user);
+    
     try {
       if (user.role == 'ADMIN' || user.role == 'LIBRARIAN') {
         const { bookCode, quantity } = data;
-        const bookQtyUpdate = await this.prismaService.book.update({
-          where: { bookCode },
-          data: { quantity: quantity },
-        });
+        // const bookQtyUpdate = await this.prismaService.book.update({
+        //   where: { bookCode },
+        //   data: { quantity: quantity },
+        // });
 
         const findbook = await this.prismaService.bookI.findFirst({
           where: { bookCode },
         });
+        console.log(findbook);
+        
         if (findbook) {
           const bookId = findbook.id;
           const updateImportBookQty = await this.prismaService.bookI.update({
@@ -91,7 +97,7 @@ export class BookService {
         } else {
           throw new HttpException(
             'Book import track not found book',
-            HttpStatus.METHOD_NOT_ALLOWED,
+            HttpStatus.BAD_REQUEST,
           );
         }
         const updateBookStore = await this.prismaService.bookStore.update({
@@ -100,7 +106,18 @@ export class BookService {
         });
         return HttpStatus.OK;
       }
-    } catch (error) {}
+      else{
+        throw new HttpException(
+          'PERMISSION_DENIED',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } catch (error) {
+      throw new HttpException(
+        error.toString(),
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
   async issuseBookStudent(data: any, user: any) {
     try {
@@ -231,4 +248,78 @@ export class BookService {
       return error;
     }
   }
+
+
+  // Librarian Access only
+  async importBook(data,user){
+
+    const {role,email,id} = user;
+    let { bookCode, importedQuantity } =data;
+
+    try {
+
+      if(!(role==='LIBRARIAN')){
+        throw new HttpException('Role Invalid!',HttpStatus.BAD_REQUEST);
+      }
+
+      if(!(bookCode)){
+        throw new HttpException('bookCode Invalid!',HttpStatus.BAD_REQUEST);
+      }
+      if(!(importedQuantity)){
+        throw new HttpException('importedQuantity Invalid!',HttpStatus.BAD_REQUEST);
+      }
+
+      if((isNaN(importedQuantity))){
+        throw new HttpException('importedQuantity Invalid datatype!',HttpStatus.BAD_REQUEST);
+      }
+
+      importedQuantity = Number(importedQuantity)
+
+
+      const isBookExist = await this.prismaService.book.findUnique({
+        where:{
+          bookCode
+        }
+      })
+
+      if(!(isBookExist)){
+        throw new HttpException('BookCode not exist!',HttpStatus.BAD_REQUEST);
+      }
+
+      // DATA INSERTION
+      // 1. BookStore Update
+      // 2. BookI     ADD NEW ENTRY
+
+      await this.prismaService.bookStore.update({
+        data:{
+          totalQuantity: {
+            increment:importedQuantity
+          }
+        },
+        where:{
+          bookCode
+        }
+      })
+
+      await this.prismaService.bookI.create({
+        data:{
+          totalQuantity:importedQuantity,
+          bookCode,
+          user_id:id,
+        }
+      })
+
+
+      return {
+        msg:"Imported Successfully"
+      }
+      
+    } catch (error) {
+      throw new HttpException(error.toString(),HttpStatus.BAD_REQUEST);
+    }
+
+
+  }
+
+
 }
