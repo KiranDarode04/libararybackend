@@ -73,7 +73,7 @@ model BookIR {
 //bookImport
 model BookI {
   id            String @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode      String
+  bookCode      String @unique
   Book          Book   @relation(name: "bookCode", fields: [bookCode], references: [bookCode])
   totalQuantity Int
   user_id       String @db.ObjectId
@@ -86,5 +86,5 @@ model BookStore {
   Book          Book   @relation(name: "bookStore", fields: [bookCode], references: [bookCode])
   totalQuantity Int
   issueQuantity Int @default(0)
-}
+}// 12weef,12,12,2 bookcode> id,bcode,totalQty, isuseQty > update 
 
