@@ -106,6 +106,7 @@ export class BookService {
         });
         return HttpStatus.OK;
       }
+<<<<<<< Updated upstream
       else{
         throw new HttpException(
           'PERMISSION_DENIED',
@@ -117,6 +118,10 @@ export class BookService {
         error.toString(),
         HttpStatus.BAD_REQUEST,
       );
+=======
+    } catch (error) {
+      return error.toString();
+>>>>>>> Stashed changes
     }
   }
   async issuseBookStudent(data: any, user: any) {
