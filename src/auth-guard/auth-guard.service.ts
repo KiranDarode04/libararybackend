@@ -1,7 +1,11 @@
 import { Injectable,ExecutionContext,UnauthorizedException,CanActivate,} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
+
+@Injectable()
+export class LocalAuthGuard extends AuthGuard('local') {}
 
 @Injectable()
 export class AuthGuardService implements CanActivate {

@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,25 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
   name      String
-  email     String   @unique
-  password  String
+  email     String       @unique
   role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  librarian BookIR[] @relation(name: "librarian")
-  student   BookIR[] @relation(name: "student")
-  BookI     BookI[]  @relation(name: "User")
-
-  Profile Profile?
-}
-
-model Profile {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  image  String
-  userId String @unique @db.ObjectId
-  User   User   @relation(fields: [userId], references: [id])
+  password  String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  librarian BookIR[]     @relation(name: "librarian")
+  student   BookIR[]     @relation(name: "student")
+  BookI     BookImport[] @relation(name: "User")
 }
 
 enum Role {
@@ -38,34 +26,37 @@ enum Role {
   LIBRARIAN
 }
 
-
-model Student {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  name     String
-  email    String
-  password String
-}
-
 model Book {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode  String      @unique
-  name      String      @unique
-  language  String
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  name      String       @unique
   author    String
-  BookI     BookI[]     @relation(name: "bookCode")
-  BookStore BookStore[] @relation(name: "bookStore")
-  Book      BookIR[]    @relation(name: "bookIR")
+  bookCode  String       @unique
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  BookI     BookImport[] @relation(name: "bookCode")
+  BookStore BookStore[]  @relation(name: "bookStore")
+  Book      BookIR[]     @relation(name: "bookIR")
 }
 
-//isue return
-model BookIR {
+model BookImport {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String   @db.ObjectId
   bookId    String   @db.ObjectId
+  Quantity  Int
+  user_id   String   @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  User      User     @relation(name: "User", fields: [user_id], references: [id])
+  Book      Book     @relation(name: "bookCode", fields: [bookId], references: [id])
+}
+
+model BookIR {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookId    String   @db.ObjectId
+  studentId String   @db.ObjectId
   user_id   String   @db.ObjectId
-  type      Type?    // ISSUE RETURN
+  status    Type? // ISSUE RETURN
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   librarian User     @relation(name: "librarian", fields: [user_id], references: [id])
   student   User     @relation(name: "student", fields: [studentId], references: [id])
   bookIR    Book     @relation(name: "bookIR", fields: [bookId], references: [id])
@@ -76,35 +67,23 @@ enum Type {
   RETURN
 }
 
+model BookStore {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookId            String   @unique
+  totalQuantity     Int
+  availableQuantity Int
+  issueQuantity     Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  Book              Book     @relation(name: "bookStore", fields: [bookId], references: [bookCode])
+}
+
 
 model BookStatus {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  status Type
-  bookId    String?   @db.ObjectId
-  studentId String   @db.ObjectId  @unique
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  status    Type
+  bookId    String?  @db.ObjectId
+  studentId String   @unique @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
-
-// ISSUE (Librarian User type for Issue)
-// RETURN (Librarian User type for Return)
-
-
-//bookImport
-model BookI {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode      String
-  Book          Book     @relation(name: "bookCode", fields: [bookCode], references: [bookCode])
-  totalQuantity Int
-  user_id       String   @db.ObjectId
-  User          User     @relation(name: "User", fields: [user_id], references: [id])
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model BookStore {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  bookCode      String @unique
-  Book          Book   @relation(name: "bookStore", fields: [bookCode], references: [bookCode])
-  totalQuantity Int
-  issueQuantity Int    @default(0)
-}
-// 12weef,12,12,2 bookcode> id,bcode,totalQty, isuseQty > update 

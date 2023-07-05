@@ -4,60 +4,215 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class AdminService {
   constructor(private readonly prismaService: PrismaService) {}
-  
- async deleteUserData() {
-   try {
-    
-    const deleteData=await this.prismaService.user.deleteMany({});
-    return deleteData;
-      
-   } catch (error) {
-    console.info(error);
-   }
+
+  async deleteAllData() {
+    await this.prismaService.bookImport.deleteMany({});
+    await this.prismaService.bookIR.deleteMany({});
+    await this.prismaService.bookStore.deleteMany({});
+    await this.prismaService.book.deleteMany({});
+
+    return 'deleted all';
   }
 
-  async test(data) {
+  async registerAdmin(data) {
     try {
-      const { username } = data;
+      const { name, email, password, role } = data;
+      if (
+        !(
+          Object.keys(name).length > 0 &&
+          Object.keys(email).length > 0 &&
+          Object.keys(password).length > 0
+        )
+      ) {
+        throw new HttpException(
+          'please fill the all data !',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const findAdmin = await this.prismaService.user.findUnique({
+        where: {
+          email: email,
+        },
+      });
 
-      const isEmailEixts = await this.prismaService.user.deleteMany({});
-      // findUnique({
-      //   where: {
-      //     email: data['email'],
-      //   },
-      // });
-      // console.info(isEmailEixts);
+      if (findAdmin) {
+        throw new HttpException(
+          'username is alrady exits !',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-      // if (isEmailEixts) {
-      //   console.log('email is alraday exits.');
-      //   throw new HttpException(
-      //     'email is alrady exits.!',
-      //     HttpStatus.BAD_REQUEST,
-      //   );
-      // }
+      const registerAdmin = await this.prismaService.user.create({
+        data: {
+          email,
+          name,
+          password,
+          role: 'ADMIN',
+        },
+      });
 
-      // const newUser = await this.prismaService.user.create({
-      //   data: {
-      //     email: data.email,
-      //     password: data['password'],
-      //     username: username,
-      //   },
-      // });
-      // console.info(newUser);
-      return { name: 'vaibhav' };
+      return { msg: 'Admin register successfully' };
     } catch (error) {
       throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
     }
   }
 
-  async deleteAllData(){
+  async countTotal() {
+    try {
+      let totalBook = 0;
+      let totalAvailableBook = 0;
+      let totalIssuedBook = 0;
+      let totalLibrarian = 0;
 
-    await this.prismaService.bookI.deleteMany({});
-    await this.prismaService.bookIR.deleteMany({})
-    await this.prismaService.bookStore.deleteMany({})
-    await this.prismaService.book.deleteMany({})
+      const countTotalBook = await this.prismaService.bookStore.findMany();
+      const countTotalIssuedBook =
+        await this.prismaService.bookStore.findMany();
+      const countTotalAvailableBook =
+        await this.prismaService.bookStore.findMany();
+      const countLibrarian = await this.prismaService.user.findMany();
+      for (const row of countTotalBook) {
+        totalBook += row.totalQuantity;
+      }
+      for (const row of countTotalIssuedBook) {
+        totalIssuedBook += row.issueQuantity;
+      }
+      for (const row of countTotalAvailableBook) {
+        totalAvailableBook += row.availableQuantity;
+      }
+      for (const row of countLibrarian) {
+        if (row.role === 'LIBRARIAN') {
+          totalLibrarian++;
+        }
+      }
+      return {
+        totalBook: totalBook,
+        totalIssuedBook,
+        totalAvailableBook,
+        totalLibrarian,
+      };
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+  async searchStudentLibrarianAndBook(data) {
+    const { name } = data;
+    const count = 6;
 
-    return 'deleted all'
+    try {
+      if (Object.keys(name).length <= 0) {
+        throw new HttpException(
+          'name not present, please enter the name',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const librarian = await this.prismaService.user.findMany({
+        where: {
+          role: 'LIBRARIAN',
+          name: { contains: name, mode: 'insensitive' },
+        },
+        take: count,
+      }); //6<=3
+      if (count <= librarian.length) {
+        return librarian;
+      }
 
+      const student = await this.prismaService.user.findMany({
+        where: {
+          role: 'STUDENT',
+          name: { contains: name, mode: 'insensitive' },
+        },
+        take: count - librarian.length,
+      });
+
+      if (count == librarian.length + student.length) {
+        return { librarian, student };
+      }
+
+      const book = await this.prismaService.book.findMany({
+        where: { name: { contains: name, mode: 'insensitive' } },
+        take: count,
+      });
+
+      return { librarian, student, book };
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async searchMoreStudentLibrarianAndBook(query) {
+    try {
+      if (!query) {
+        throw new HttpException(
+          'name not present, please enter the name',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const librarian = await this.prismaService.user.findMany({
+        where: {
+          role: 'LIBRARIAN',
+          name: { contains: query.query, mode: 'insensitive' },
+        },
+      });
+
+      const student = await this.prismaService.user.findMany({
+        where: {
+          role: 'STUDENT',
+          name: { contains: query.query, mode: 'insensitive' },
+        },
+      });
+
+      const book = await this.prismaService.book.findMany({
+        where: {
+          name: { contains: query.query, mode: 'insensitive' },
+        },
+      });
+
+      if (!(librarian && student && book)) {
+        throw new HttpException('Record not found !', HttpStatus.BAD_REQUEST);
+      }
+
+      return { librarian, student, book };
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async getLibrarianDetails(librarainId) {
+    try {
+      if (!librarainId) {
+        throw new HttpException(
+          'Enter the librarian id !',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const getLibrarianDetail = await this.prismaService.user.findFirst({
+        where: {
+          id: librarainId.librarainId,
+          role: 'LIBRARIAN',
+        },
+      });
+      return getLibrarianDetail;
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+  async getStudentDetails(studentId) {
+    try {
+      if (!studentId) {
+        throw new HttpException(
+          'Enter the librarian id !',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const getStudentDetails = await this.prismaService.user.findFirst({
+        where: {
+          id: studentId.studentId,
+          role: 'STUDENT',
+        },
+      });
+      return getStudentDetails;
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
   }
 }

@@ -1,0 +1,267 @@
+api list 03/07/2023
+==================================
+               ADMIN
+==================================
+1) post  -> registerAdmin-> admin/registerAdmin {
+                          input{ name,email,role,password }
+                          output{msg:user Register succussefully |username is alrady exits }
+                      }
+
+2)post -> loginAdmin -> admin/adminLogin{
+     input {username,password}
+     output{msg:"login succussefully"| bad cradentional}
+   }
+
+//done
+3)get  ->  countTotalBook->admin/findTotalBook/{
+     input {0}
+     output {_id,bookCode,name,author}
+}
+
+
+//done
+4)get  -> countTotalIssuedBook ->admin/totalIssuedBook{
+    input {0}
+    output{numberOfBook Int}
+}
+
+
+//done
+5)get ->countTotalAvailableBook -> admin/totalAvailbleBook{
+    input{0},
+    output{numberofAvilableBook Int}
+}
+
+//done 
+6)get ->countTotalStudent  ->admin/totalStudent{
+    input {0}
+    output{number of Student}
+}
+
+7) get ->countTotalLibrarian ->admin/totalLibrarian{
+    input {auth}
+    output{number of librarian count }
+}
+
+8) get ->searchStudentLibrarianOrBook->admin/searchStudentLibrarianOrBook{
+    input {String}
+    output{
+        {
+          name:"kiran darode",
+          Role:"student"
+        }
+        {
+          name:"kunatal pigle",
+          Role:"librarian"
+        }
+        {
+          name:"karim drav"
+          Role: "book"
+          
+        }
+        fail Time : record not found
+    condition -> limit only 8-9 record show
+}
+
+9)get ->showMoreStudentLibrarianBook-> admin/admin/searchSeeAll?searchText=kiran{
+    description->when result shearch then contain so large the clicked showMore button then show the following result
+    condition->onliy search enter string search
+    input {String}
+         output{
+        {
+          name:"kiran darode",
+          type:"student"
+        }
+        {
+          name:"kunatal pigle",
+          type:"librarian"
+        }
+        {
+          name:"karim drav"
+          type: "book"
+          
+        }
+        fail Time : record not found
+       condition: no limit unlimitad search record 
+}
+
+10) get-> getBookDetail-> /admin/bookDetails?bookId=101{
+    input: {bookId}
+    output:{return : Book name,available Book(availabeBook-iussuedBook),book Issue,bookAuthor,total available book(all)}
+}
+
+
+11)get ->getLibrarianDetails-> /admin/librarianDetails?librarianId=101{
+     input: {LibrarainId}
+     output:{name,email,registerdAt}
+}
+
+
+12)get ->getStudentDetails-> /admin/studentDetails?studentId=101{
+     input: {studentId}
+     output:{name,email,registerdAt}
+}
+
+
+13) get -> getUserDetail->admin/myAccount{
+    input{userId}
+    output{name,email,registerdAt}
+}
+
+14) get ->checkBookExitsOrNot->admin/checkBookExitsOrNot{
+    description: "when admin gose to import new book that time check Book is Exits Or Not ?"
+    input: {bookCode}
+    output: {{msg:"book is exits" | "book Not Exits"}}
+} 
+
+15) post -> import new Book -> /admin/import/book{
+    input: {BookCode,name,author,quantity}
+    output:{{msg:book imported successfully | book not imported, Try again! }}
+}
+
+@Authenticated->admin
+16) post ->import Book Quantity->/admin/import/bookQuantity {
+    input:{BookCode,bookQuantity};
+        output:{{msg:book imported successfully | book not imported, Try again! }}
+}
+
+@Authenticated->admin
+17) get -> book import History -> /admin/import/history{
+    input:{0}
+    output:{book code,bookName,totalQuantity, createdAt }
+}
+
+@Authenticated
+18) get -> display librarian List -> /admin/librarian/list{
+    input :{0}
+    output:{sr.number,name,email,createdAt}
+}
+
+@Authenticated->admin
+19) post -> create new librarian -> /admin/librarian/createNewLibrarian{
+       input:{name,email,password}
+       output:{{msg:"librarian created successfully" | "bad cradentional"}}
+}
+
+=======================================================
+                Librarian
+=======================================================                
+// admin register the librarian
+
+1)post -> loginAdmin -> Librarian/adminLogin{              |
+     input {username,password}                             | Common api
+     output{msg:"login succussefully"| bad cradentional}   |
+   }
+
+
+2)get  ->  countTotalBook->librarian/findTotalBook/{
+     input {0}
+     output {_id,bookCode,name,author}
+}
+
+3)get  -> countTotalIssuedBook ->Librarian/totalIssuedBook{
+    input {0}
+    output{numberOfBook Int}
+}
+
+4)get ->countTotalAvailableBook -> librarian/totalAvailbleBook{
+    input{0},
+    output{numberofAvilableBook Int}
+}
+
+5)get ->countTotalStudent  ->librarian/totalStudent{
+    input {0}
+    output{number of Student}
+}
+
+
+6) post -> create new Student -> /librarian/createNewStudent{
+       input:{name,email,password}
+       output:{{msg:"librarian created successfully" | "bad cradentional"}}
+}
+
+7) get -> available book->  /librarian/book/book-list {
+     input{pagination Api}
+     output:{
+        id,name,author, totalBook, avilableBook,issuedBook
+     }
+}
+
+8)get ->search Bar Api -> /librarian/search?{
+    desc-> when user search the data on searchbar data.
+    input :{String}
+    output:{{name:"kiran",type:"student"}
+             {name :"kadhnsds",  type:"book"}
+    condition: "minimun 8 to 9 list" ->use limit:         
+}
+
+9)get ->show more api-> /librarian/searchMore{
+    input:{String}
+    output:{name:"kiran",type:"student"}
+             {name :"kadhnsds",  type:"book"}
+             {name:"kiran",type:"student"}
+             {name :"kadhnsds",  type:"book"}
+   condition:no limit          
+}
+
+10)get ->specific searched and clicked like book->  /librarian/book?=12{
+    desc->when librarian clicked the searchbar specific book
+    input:{bookId}
+    output:{name,bookcode,availabeBook,book issue,total Book, book author}
+}
+
+10)get ->specific searched and clicked like student->  /librarian/student?=12{
+    desc->when librarian clicked the searchbar specific student
+    input:{studentId}
+    output:{name,email, issuedBook,registerdAt}
+}
+
+11) post -> issuedNewbook-> /librarian/studentDetails?studentId=101&mode=issueProcess{
+     input:{studentEmail,bookcode}
+     output:{status}
+     gude: when librarian writting the book and student name  that timeshow the guideline.
+}
+
+12) get ->student List ->/librarian/student/list {
+    // pagination lnclude
+    input:{pageSize and number} 
+    outpu:{name,email,BookStatus,Date}
+}
+
+
+==============================================
+          Student
+=============================================
+
+1)get ->student bookList -> /student/books{
+      input->{NA}
+      output->{bookCode,BookName,status}
+}
+
+2)get ->studentSerarchBar -> /student/searchBook?=kaud{
+      input :{String}
+      output:{bookName,status}
+      condition: only 9to 8
+}
+
+3)get ->search Show more ->student/showMoreBook?=kaud{
+    input :{String}
+      output:{bookName,status}
+}
+4)get ->search when click on book -> student/bookDetails?=kadhn{
+    input:{bookId}
+    outpu:{name.status,author}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
