@@ -69,15 +69,14 @@ enum Type {
 
 model BookStore {
   id                String   @id @default(auto()) @map("_id") @db.ObjectId
-  bookId            String   @unique
+  bookId            String   @unique @db.ObjectId
   totalQuantity     Int
   availableQuantity Int
   issueQuantity     Int      @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
-  Book              Book     @relation(name: "bookStore", fields: [bookId], references: [bookCode])
+  Book              Book     @relation(name: "bookStore", fields: [bookId], references: [id])
 }
-
 
 model BookStatus {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId

@@ -85,24 +85,27 @@ api list 03/07/2023
        condition: no limit unlimitad search record 
 }
 
+//deleted 
 10) get-> getBookDetail-> /admin/bookDetails?bookId=101{
     input: {bookId}
     output:{return : Book name,available Book(availabeBook-iussuedBook),book Issue,bookAuthor,total available book(all)}
 }
 
-
+//deleted
 11)get ->getLibrarianDetails-> /admin/librarianDetails?librarianId=101{
      input: {LibrarainId}
      output:{name,email,registerdAt}
 }
 
-
+//deleted
 12)get ->getStudentDetails-> /admin/studentDetails?studentId=101{
      input: {studentId}
      output:{name,email,registerdAt}
 }
 
+** added get onClickedSearchedData()
 
+//done
 13) get -> getUserDetail->admin/myAccount{
     input{userId}
     output{name,email,registerdAt}
@@ -131,6 +134,7 @@ api list 03/07/2023
     output:{book code,bookName,totalQuantity, createdAt }
 }
 
+//done
 @Authenticated
 18) get -> display librarian List -> /admin/librarian/list{
     input :{0}

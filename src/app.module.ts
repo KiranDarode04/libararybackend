@@ -11,11 +11,11 @@ import { PrismaService } from './prisma/prisma.service';
 import { AuthGuardService } from './auth-guard/auth-guard.service';
 import { LibrarianController } from './librarian/librarian.controller';
 import { LibrarianModule } from './librarian/librarian.module';
-
+import {LibrarianService} from './librarian/librarian.service';
 
 @Module({
   imports: [AdminModule, PrismaModule, StudentModule, AuthModule, BookModule, AuthGuardModule, LibrarianModule],
   controllers: [AppController, LibrarianController],
-  providers: [AppService,PrismaService,AuthGuardService],
+  providers: [AppService,PrismaService,AuthGuardService,LibrarianService],
 })
 export class AppModule {}
