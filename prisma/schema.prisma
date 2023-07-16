@@ -80,7 +80,7 @@ model BookStore {
 
 model BookStatus {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  status    Type
+  status    Type     
   bookId    String?  @db.ObjectId
   studentId String   @unique @db.ObjectId
   createdAt DateTime @default(now())

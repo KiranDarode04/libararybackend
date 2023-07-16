@@ -55,12 +55,26 @@ export class LibrarianController {
 
   //pagination
   @Get('searchMoreBookAndStudent')
-  @UseGuards(AuthGuardService)
+  @UseGuards(AuthGuardService) // user type librarain
   async searchMoreBookAndStudent(@Request() req, @Query() data) {
     const user = req.user;
     return await this.librarianService.searchMoreBookAndStudentService(
       user,
       data,
     );
+  }
+
+  @Get('getBookDetail')
+  @UseGuards(AuthGuardService) // user type librarain
+  async getBookDetail(@Request() req, @Query() data) {
+    const user = req.user;
+    return await this.librarianService.getBookDetail(user, data);
+  }
+
+  @Get('getStudentDetail')
+  @UseGuards(AuthGuardService) // user type librarain
+  async getStudentDetail( @Request() req, @Query() data){
+    const user = req.user;
+    return await this.librarianService.getStudentDetail(user, data);
   }
 }

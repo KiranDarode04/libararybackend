@@ -215,11 +215,11 @@ export class LibrarianService {
           name: true,
           role: true,
         },
-        take:parseInt(pageSize),
-        skip:parseInt(page)*parseInt(pageSize),
-        orderBy:{
-            createdAt:'asc'
-        }
+        take: parseInt(pageSize),
+        skip: parseInt(page) * parseInt(pageSize),
+        orderBy: {
+          createdAt: 'asc',
+        },
       });
       //
       return student;
@@ -228,8 +228,6 @@ export class LibrarianService {
           name: { contains: name, mode: 'insensitive' },
         },
       });
-
-    
 
       const book = await this.prismaService.book.findMany({
         where: {
@@ -252,13 +250,118 @@ export class LibrarianService {
         throw new HttpException('Record not found !', HttpStatus.BAD_REQUEST);
       }
 
-  
       return {
-        totalCounter:bookCount+studnetCounter,
-        data:[...student, ...bookList]
+        totalCounter: bookCount + studnetCounter,
+        data: [...student, ...bookList],
+      };
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  //book name , author, avilable book, issued book,total book
+  async getBookDetail(user, data) {
+    try {
+      if (!(user.role === 'LIBRARIAN')) {
+        throw new HttpException('INVALID USER', HttpStatus.UNAUTHORIZED);
+      }
+
+      const { id } = data;
+      if (!id) {
+        throw new HttpException(
+          'Id not found, please enter the id',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (!(id.length === 24)) {
+        throw new HttpException('Id not right', HttpStatus.BAD_REQUEST);
+      }
+      const findBookId = await this.prismaService.book.findUnique({
+        where: { id },
+      });
+      if (!findBookId) {
+        throw new HttpException('Book not found !', HttpStatus.BAD_REQUEST);
+      }
+      const getBookDetail = await this.prismaService.book.findFirst({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          author: true,
+        },
+      });
+
+      const getBookCountDetails = await this.prismaService.bookStore.findFirst({
+        where: { bookId: id },
+        select: {
+          availableQuantity: true,
+          totalQuantity: true,
+          issueQuantity: true,
+        },
+      });
+
+      if (!getBookCountDetails) {
+        throw new HttpException(
+          'Book count  not found !',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return [{ ...getBookDetail, ...getBookCountDetails }];
+    } catch (error) {
+      throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  //name, email,RegisterdAt,issuedBook
+  async getStudentDetail(user, data) {
+    try {
+      if (!(user.role === 'LIBRARIAN')) {
+        throw new HttpException('INVALID USER', HttpStatus.UNAUTHORIZED);
+      }
+
+      const { id } = data;
+      if (!id) {
+        throw new HttpException(
+          'Id not found, please enter the id',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (!(id.length === 24)) {
+        throw new HttpException('Id not right', HttpStatus.BAD_REQUEST);
+      }
+
+      const findStudentId = await this.prismaService.user.findFirst({
+        where: { id, role: 'STUDENT' },
+      });
+
+      if (!findStudentId) {
+        throw new HttpException(
+          'student Record not found',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      const findStudent = await this.prismaService.user.findFirst({
+        where: { id },
+        select: { id: true, name: true, createdAt: true },
+      });
+
+      const checkBookIssuedOrNot =
+        await this.prismaService.bookStatus.findFirst({
+          where: { studentId: id },
+        });
+
+      if (!checkBookIssuedOrNot) {
+        return [{ ...findStudent, IssuedBook: 'NA' }];
+      }
+      if (checkBookIssuedOrNot.status === 'RETURN') {
+        return [{ ...findStudent, IssuedBook: 'Issued' }];
       }
     } catch (error) {
       throw new HttpException(error.toString(), HttpStatus.BAD_REQUEST);
     }
   }
+  
 }
